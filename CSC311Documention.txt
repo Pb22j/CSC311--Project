@@ -1,0 +1,10 @@
+Class Reader
+	One Method
+	take a txt path for X,Y data and put it into a String List
+
+Class DrawerPanel
+	This Class Take the Data put it into an GUI Frame Same as 	The Hull point 
+	
+	Methods 
+		AddPoint():its Put the point in the Graph
+		AddHullPoint():Same as addPoint But this will make a 						line between the point
