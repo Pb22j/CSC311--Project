@@ -7,11 +7,18 @@ public class MainGUI {
             JFrame frame = new JFrame("2D Data Plot with Axes");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             String pathFile="D:\\Github\\ProgramingLanguae\\Java\\CSC311Proj\\src\\data12.txt";
-            // Set a larger size to accommodate padding
+             //Set a larger size to accommodate padding
             frame.setSize(500, 500); 
-
-            frame.add(new DrawerPanel(pathFile));
-            
+            DrawerPanel Frame =new DrawerPanel(pathFile);
+            frame.add(Frame);
+            System.out.println("UpperHullPoints:");
+            Frame.displyValue(Frame.UpperHullBrute);
+            System.out.println("____________________________");
+            System.out.println("LowerHullPoints:");
+            Frame.displyValue(Frame.LowerHullBrute);
+            System.out.println("____________________________");
+            System.out.println("ExtremPoints:");
+            Frame.displyValue(Frame.ExtremPointBrute);
             frame.setVisible(true);
         });
     }
