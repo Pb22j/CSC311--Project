@@ -5,7 +5,7 @@ public class Reader {
     //THIS METHOD SHOULD TAKE THE DATA AND PUT IT ON ARRAY
     //INPUT:PATH FOR THE FILE THAT HAS DATA
     //OUTPUT:A IS ARRAY THAT HAS X,Y IN EACH INDEX FOR EACH VALUE
-	// Test
+	// Testa
        public static String [] getData(String path){
         String fileName = path; // The file path
         List<String> points = new ArrayList<>();
