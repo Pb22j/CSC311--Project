@@ -31,6 +31,8 @@ public class DrawerPanel extends JPanel {
     public int LowerCounter;
     public int[] ExtremPointBrute;
     public int ExtremCounter;
+    public int[] UpperHullQuick;
+    public int[] LowerHullQuick;
     public DrawerPanel(String path) {
         
         //THIS LINE WILL CONVERT THE TXT TO AN ARRAY WITH X,Y ONLY LIKE THIS 123,323.4
@@ -49,14 +51,15 @@ public class DrawerPanel extends JPanel {
       // XYhullpoint= Reader.getData("D:\\Github\\ProgramingLanguae\\Java\\CSC311Proj\\src\\HullPointTest.txt");
         hullPoints = new ArrayList<>();
         AddPoints();
-        int []h=BruteForceConvexHull();
-        //NotSure About UPper HULLand Lower Hull 
-        UpperHullBrute=Arrays.copyOf(UpperHullBrute, UpperCounter);
-        LowerHullBrute=Arrays.copyOf(LowerHullBrute, LowerCounter);
-        ExtremPointBrute=Arrays.copyOf(h,h.length);
-        ExtremCounter=h.length;
-        AddHullPoint(h);
-      
+        // int []h=BruteForceConvexHull();
+        // //NotSure About UPper HULLand Lower Hull 
+        // UpperHullBrute=Arrays.copyOf(UpperHullBrute, UpperCounter);
+        // LowerHullBrute=Arrays.copyOf(LowerHullBrute, LowerCounter);
+        // ExtremPointBrute=Arrays.copyOf(h,h.length);
+        // ExtremCounter=h.length;
+        // AddHullPoint(h);
+        QuickHullConvexHull();
+            
     }//END Of METHOD
 
     public Double MaxY(){
@@ -292,5 +295,205 @@ public class DrawerPanel extends JPanel {
 
             g2d.drawLine(x1, y1, x2, y2);
         }
+        if (hullPoints.size() > 1) {
+            Point first = hullPoints.get(0);
+            Point last = hullPoints.get(hullPoints.size() - 1);
+
+            int x1 = PADDING + (last.x * drawingWidth / MAX_COORD);
+            int y1 = panelHeight - PADDING - (last.y * drawingHeight / MAX_COORD);
+
+            int x2 = PADDING + (first.x * drawingWidth / MAX_COORD);
+            int y2 = panelHeight - PADDING - (first.y * drawingHeight / MAX_COORD);
+
+            g2d.drawLine(x1, y1, x2, y2);
+        }
     }
+    // ======================= QUICKHULL ALGORITHM ==========================
+    public int[] QuickHull() {
+        List<Point> points = new ArrayList<>();
+        for (String xy : XYList) {
+            String[] parts = xy.split(",");
+            points.add(new Point((int) Double.parseDouble(parts[0]), (int) Double.parseDouble(parts[1])));
+        }
+
+        if (points.size() < 3) return new int[0];
+
+        // Find leftmost and rightmost points
+        Point minXPoint = points.get(0), maxXPoint = points.get(0);
+        for (Point p : points) {
+            if (p.x < minXPoint.x) minXPoint = p;
+            if (p.x > maxXPoint.x) maxXPoint = p;
+        }
+
+        List<Point> hull = new ArrayList<>();
+        hull.add(minXPoint);
+        hull.add(maxXPoint);
+
+        List<Point> leftSet = new ArrayList<>();
+        List<Point> rightSet = new ArrayList<>();
+
+        for (Point p : points) {
+            if (p.equals(minXPoint) || p.equals(maxXPoint)) continue;
+            if (pointLocation(minXPoint, maxXPoint, p) == -1)
+                leftSet.add(p);
+            else if (pointLocation(minXPoint, maxXPoint, p) == 1)
+                rightSet.add(p);
+        }
+
+        findHull(minXPoint, maxXPoint, rightSet, hull);
+        findHull(maxXPoint, minXPoint, leftSet, hull);
+
+        // Convert to indices in XYList order
+        int[] hullIndices = new int[hull.size()];
+        for (int i = 0; i < hull.size(); i++) {
+            Point p = hull.get(i);
+            for (int j = 0; j < XYList.length; j++) {
+                String[] parts = XYList[j].split(",");
+                double x = Double.parseDouble(parts[0]);
+                double y = Double.parseDouble(parts[1]);
+                if (p.x == (int)x && p.y == (int)y) {
+                    hullIndices[i] = j;
+                    break;
+                }
+            }
+        }
+
+        return hullIndices;
+    }
+
+    // Determine side of point
+    private int pointLocation(Point A, Point B, Point P) {
+        int cp1 = (B.x - A.x) * (P.y - A.y) - (B.y - A.y) * (P.x - A.x);
+        if (cp1 > 0) return 1;   // Left side
+        else if (cp1 == 0) return 0;
+        else return -1;          // Right side
+    }
+
+    // Distance from line AB to point C
+    private double distance(Point A, Point B, Point C) {
+        double ABx = B.x - A.x;
+        double ABy = B.y - A.y;
+        double num = Math.abs(ABx * (A.y - C.y) - ABy * (A.x - C.x));
+        double den = Math.sqrt(ABx * ABx + ABy * ABy);
+        return num / den;
+    }
+
+    // Recursive divide-and-conquer
+    private void findHull(Point A, Point B, List<Point> set, List<Point> hull) {
+        int insertPosition = hull.indexOf(B);
+        if (insertPosition == -1) {
+            // Fallback: if B is not yet in hull, add at end
+            insertPosition = hull.size();
+        }
+
+        if (set.isEmpty()) return;
+
+        if (set.size() == 1) {
+            Point p = set.get(0);
+            hull.add(insertPosition, p);
+            return;
+        }
+
+
+        double dist = Double.NEGATIVE_INFINITY;
+        Point furthestPoint = null;
+        for (Point p : set) {
+            double distance = distance(A, B, p);
+            if (distance > dist) {
+                dist = distance;
+                furthestPoint = p;
+            }
+        }
+        hull.add(insertPosition, furthestPoint);
+
+        // Split remaining points
+        List<Point> leftSetAP = new ArrayList<>();
+        for (Point p : set) {
+            if (p == furthestPoint) continue;
+            if (pointLocation(A, furthestPoint, p) == 1)
+                leftSetAP.add(p);
+        }
+
+        List<Point> leftSetPB = new ArrayList<>();
+        for (Point p : set) {
+            if (p == furthestPoint) continue;
+            if (pointLocation(furthestPoint, B, p) == 1)
+                leftSetPB.add(p);
+        }
+
+        findHull(A, furthestPoint, leftSetAP, hull);
+        findHull(furthestPoint, B, leftSetPB, hull);
+    }
+    public void QuickHullConvexHull() {
+    List<Point> points = new ArrayList<>();
+    for (String xy : XYList) {
+        String[] parts = xy.split(",");
+        points.add(new Point((int) Double.parseDouble(parts[0]), (int) Double.parseDouble(parts[1])));
+    }
+
+    if (points.size() < 3) return;
+
+    // Find leftmost and rightmost points
+    Point minXPoint = points.get(0), maxXPoint = points.get(0);
+    for (Point p : points) {
+        if (p.x < minXPoint.x) minXPoint = p;
+        if (p.x > maxXPoint.x) maxXPoint = p;
+    }
+
+    List<Point> upperHull = new ArrayList<>();
+    List<Point> lowerHull = new ArrayList<>();
+
+    List<Point> upperSet = new ArrayList<>();
+    List<Point> lowerSet = new ArrayList<>();
+
+    for (Point p : points) {
+        if (p.equals(minXPoint) || p.equals(maxXPoint)) continue;
+        if (pointLocation(minXPoint, maxXPoint, p) == 1)
+            upperSet.add(p);
+        else if (pointLocation(minXPoint, maxXPoint, p) == -1)
+            lowerSet.add(p);
+    }
+
+    upperHull.add(minXPoint);
+    findHull(minXPoint, maxXPoint, upperSet, upperHull);
+    upperHull.add(maxXPoint);
+
+    lowerHull.add(maxXPoint);
+    findHull(maxXPoint, minXPoint, lowerSet, lowerHull);
+    lowerHull.add(minXPoint);
+
+    // Convert to indices
+    UpperHullQuick = toIndices(upperHull);
+    LowerHullQuick = toIndices(lowerHull);
+
+    // Combine both into one hull
+    List<Point> fullHull = new ArrayList<>(upperHull);
+    fullHull.addAll(lowerHull.subList(1, lowerHull.size() - 1)); // avoid duplicates
+
+    ExtremPointBrute = toIndices(fullHull);
+    ExtremCounter = fullHull.size();
+
+    AddHullPoint(ExtremPointBrute);
+    repaint();
+}
+
+    // Helper to convert a list of points to XYList indices
+    private int[] toIndices(List<Point> pointList) {
+        int[] indices = new int[pointList.size()];
+        for (int i = 0; i < pointList.size(); i++) {
+            Point p = pointList.get(i);
+            for (int j = 0; j < XYList.length; j++) {
+                String[] parts = XYList[j].split(",");
+                double x = Double.parseDouble(parts[0]);
+                double y = Double.parseDouble(parts[1]);
+                if (p.x == (int) x && p.y == (int) y) {
+                    indices[i] = j;
+                    break;
+                }
+            }
+        }
+        return indices;
+    }
+
+
 }
