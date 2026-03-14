@@ -31,6 +31,8 @@ public class DrawerPanel extends JPanel {
     public int LowerCounter;
     public int[] ExtremPointBrute;
     public int ExtremCounter;
+    public int[] UpperHullQuick;
+    public int[] LowerHullQuick;
     public DrawerPanel(String path) {
         
         //THIS LINE WILL CONVERT THE TXT TO AN ARRAY WITH X,Y ONLY LIKE THIS 123,323.4
@@ -49,14 +51,15 @@ public class DrawerPanel extends JPanel {
       // XYhullpoint= Reader.getData("D:\\Github\\ProgramingLanguae\\Java\\CSC311Proj\\src\\HullPointTest.txt");
         hullPoints = new ArrayList<>();
         AddPoints();
-        int []h=BruteForceConvexHull();
-        //NotSure About UPper HULLand Lower Hull 
-        UpperHullBrute=Arrays.copyOf(UpperHullBrute, UpperCounter);
-        LowerHullBrute=Arrays.copyOf(LowerHullBrute, LowerCounter);
-        ExtremPointBrute=Arrays.copyOf(h,h.length);
-        ExtremCounter=h.length;
-        AddHullPoint(h);
-      
+        // int []h=BruteForceConvexHull();
+        // //NotSure About UPper HULLand Lower Hull 
+        // UpperHullBrute=Arrays.copyOf(UpperHullBrute, UpperCounter);
+        // LowerHullBrute=Arrays.copyOf(LowerHullBrute, LowerCounter);
+        // ExtremPointBrute=Arrays.copyOf(h,h.length);
+        // ExtremCounter=h.length;
+        // AddHullPoint(h);
+        QuickHullConvexHull();
+            
     }//END Of METHOD
 
     public Double MaxY(){
@@ -424,6 +427,16 @@ public Stack<Point> Graham_Algorithm(List<Point> points) { // you can convert it
 
             g2d.drawLine(x1, y1, x2, y2);
         }
-    }
+        if (hullPoints.size() > 1) {
+            Point first = hullPoints.get(0);
+            Point last = hullPoints.get(hullPoints.size() - 1);
 
-}
+            int x1 = PADDING + (last.x * drawingWidth / MAX_COORD);
+            int y1 = panelHeight - PADDING - (last.y * drawingHeight / MAX_COORD);
+
+            int x2 = PADDING + (first.x * drawingWidth / MAX_COORD);
+            int y2 = panelHeight - PADDING - (first.y * drawingHeight / MAX_COORD);
+
+            g2d.drawLine(x1, y1, x2, y2);
+        }
+    }
